@@ -28,19 +28,26 @@ app.get("/", async(req, res) => {
 app.get("/feed", (req, res) => {
     if (frontenddata.length != 0) {
         res.render("index", { frontenddata });
+        frontenddata = [];
     } else {
         res.redirect("/");
     }
 });
 
-app.post("/post", (req, res) => {
-    const db = new sqlite.Database("myDB.db");
-    db.serialize(() => {
-        db.run("INSERT INTO data (name, email, phone) VALUES (?, ?, ?)", [req.body.name, req.body.email, req.body.phone]);
-    });
-    db.close();
-    console.log(req.body);
-    res.redirect("/");
+app.get("/post", (req, res) => {
+    res.render("post");
+});
+
+app.post("/posted", (req, res) => {
+    const data = req.body;
+    (async() => {
+        const db = await open({
+            filename: 'myDB.db',
+            driver: sqlite3.Database
+        })
+        db.run('INSERT INTO data (TITLE, textdata, imglink) VALUES (?, ?, ?)', data.title, data.textdata, data.imglink);
+    })()
+    res.redirect("/")
 });
 
 app.listen(3000, () => {
